@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-head">
+    <div>
+        <p class="eyebrow">Conversation</p>
+        <h2>{{ other.display_name }}</h2>
+    </div>
+</div>
+
+<div class="chat-box">
+    {% for m in messages_qs %}
+        <div class="chat-line {% if m.sender_id == user.id %}me{% else %}them{% endif %}">
+            <div class="bubble">
+                <p class="muted">{{ m.created_at|date:"d/m/Y H:i" }}</p>
+                <p>{{ m.content }}</p>
+                {% if m.attachment %}
+                    <a class="link" href="{{ m.attachment.url }}" target="_blank">Pièce jointe</a>
+                {% endif %}
+            </div>
+        </div>
+    {% empty %}
+        <p>Pas de messages pour l'instant.</p>
+    {% endfor %}
+</div>
+
+<form method="post" enctype="multipart/form-data" class="form-card">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Envoyer</button>
+</form>
+{% endblock %}

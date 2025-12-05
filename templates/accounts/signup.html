@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-head">
+    <h2>Inscription {{ role }}</h2>
+    <p class="muted">Renseignez les informations pour continuer.</p>
+</div>
+<form method="post" class="form-card">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Créer le compte</button>
+</form>
+{% endblock %}

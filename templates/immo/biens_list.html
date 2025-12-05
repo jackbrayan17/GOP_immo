@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-head">
+    <h2>Mes biens</h2>
+    <a class="btn" href="{% url 'bien_create' %}">Nouveau bien</a>
+</div>
+<div class="table">
+    <div class="table-row table-head">
+        <div>Bien</div>
+        <div>Type</div>
+        <div>Statut</div>
+        <div>Adresse</div>
+        <div>Actions</div>
+    </div>
+    {% for bien in biens %}
+        <div class="table-row">
+            <div>{{ bien.title }}</div>
+            <div>{{ bien.get_property_type_display }}</div>
+            <div>{{ bien.get_listing_status_display }}</div>
+            <div>{{ bien.address }}</div>
+            <div>
+                <a class="link" href="{% url 'bien_edit' bien.id %}">Éditer</a> |
+                <a class="link" href="{% url 'assign_prestataire' bien.id %}">Prestataire</a> |
+                <a class="link" href="{% url 'bien_media' bien.id %}">Médias</a>
+            </div>
+        </div>
+    {% empty %}
+        <p>Aucun bien pour l'instant.</p>
+    {% endfor %}
+</div>
+{% endblock %}

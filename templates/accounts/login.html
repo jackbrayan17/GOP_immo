@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-head">
+    <h2>Connexion</h2>
+    <p class="muted">Accédez à vos biens et missions.</p>
+</div>
+<form method="post" class="form-card">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Se connecter</button>
+</form>
+<p class="muted">Pas de compte ? <a class="link" href="{% url 'signup_choice' %}">Créer un compte</a></p>
+{% endblock %}

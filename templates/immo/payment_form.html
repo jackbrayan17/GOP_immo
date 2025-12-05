@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Enregistrer un paiement</h2>
+<form method="post" class="form-card">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button class="btn" type="submit">Valider</button>
+</form>
+{% endblock %}

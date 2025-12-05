@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-head">
+    <div>
+        <p class="eyebrow">Bonjour {{ user.username }}</p>
+        <h2>Tableau de bord</h2>
+    </div>
+    {% if user.is_proprietaire %}
+        <a class="btn" href="{% url 'bien_create' %}">Ajouter un bien</a>
+    {% else %}
+        <a class="btn" href="{% url 'report_create' %}">Envoyer un rapport</a>
+    {% endif %}
+</div>
+
+{% if user.is_proprietaire %}
+    <section>
+        <h3>Mes biens</h3>
+        <div class="cards-grid">
+            {% for bien in biens %}
+                <article class="card">
+                    <h4>{{ bien.title }}</h4>
+                    <p>{{ bien.get_property_type_display }} - {{ bien.get_listing_status_display }}</p>
+                    <p class="muted">{{ bien.address }}</p>
+                </article>
+            {% empty %}
+                <p>Ajoutez votre premier bien.</p>
+            {% endfor %}
+        </div>
+    </section>
+
+    <section>
+        <h3>Contrats récents</h3>
+        <ul class="list">
+            {% for c in contrats %}
+                <li><strong>{{ c.tenant_name }}</strong> — {{ c.bien.title }} ({{ c.get_status_display }})</li>
+            {% empty %}
+                <li>Aucun contrat.</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section>
+        <h3>Paiements récents</h3>
+        <ul class="list">
+            {% for p in paiements %}
+                <li>{{ p.get_payment_type_display }} — {{ p.amount }} € ({{ p.get_status_display }})</li>
+            {% empty %}
+                <li>Pas encore de paiement enregistré.</li>
+            {% endfor %}
+        </ul>
+    </section>
+{% else %}
+    <section>
+        <h3>Missions en cours</h3>
+        <ul class="list">
+            {% for mission in missions %}
+                <li>{{ mission.bien.title }} — propriétaire : {{ mission.bien.owner.display_name }}</li>
+            {% empty %}
+                <li>Pas de mission active.</li>
+            {% endfor %}
+        </ul>
+    </section>
+    <section>
+        <h3>Mes rapports</h3>
+        <ul class="list">
+            {% for r in rapports %}
+                <li>{{ r.bien.title }} — {{ r.created_at|date:"d/m/Y H:i" }}</li>
+            {% empty %}
+                <li>Aucun rapport envoyé.</li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}
+
+<section>
+    <h3>Messagerie</h3>
+    <ul class="list">
+        {% for msg in last_messages %}
+            <li>{{ msg.sender.display_name }} → {{ msg.receiver.display_name }} : {{ msg.content|truncatechars:60 }}</li>
+        {% empty %}
+            <li>Aucun message pour le moment.</li>
+        {% endfor %}
+    </ul>
+    <a class="link" href="{% url 'inbox' %}">Ouvrir la messagerie</a>
+</section>
+{% endblock %}

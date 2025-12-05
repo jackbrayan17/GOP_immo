@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-head">
+    <div>
+        <p class="eyebrow">Médias du bien</p>
+        <h2>{{ bien.title }}</h2>
+        <p class="muted">{{ existing_count }}/10 fichiers utilisés</p>
+    </div>
+    <a class="link" href="{% url 'biens_list' %}">Retour à la liste</a>
+</div>
+
+<form method="post" enctype="multipart/form-data" class="form-card" id="mediaForm">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <div id="preview" class="media-preview"></div>
+    <button class="btn" type="submit">Uploader</button>
+</form>
+
+<h3>Fichiers existants</h3>
+<div class="media-grid">
+    {% for m in medias %}
+        <div class="media-item">
+            {% if m.kind == m.MediaKind.IMAGE %}
+                <img src="{{ m.file.url }}" alt="media" loading="lazy">
+            {% elif m.kind == m.MediaKind.VIDEO %}
+                <video src="{{ m.file.url }}" controls></video>
+            {% else %}
+                <a class="link" href="{{ m.file.url }}">Télécharger</a>
+            {% endif %}
+            <p class="muted">{{ m.uploaded_at|date:"d/m/Y H:i" }}</p>
+        </div>
+    {% empty %}
+        <p>Aucun média pour ce bien.</p>
+    {% endfor %}
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const input = document.querySelector('#id_files');
+    const preview = document.getElementById('preview');
+    if (!input || !preview) return;
+    input.addEventListener('change', function() {
+        preview.innerHTML = '';
+        const files = Array.from(input.files || []);
+        if (files.length > 10) {
+            preview.innerHTML = '<p class="alert">Maximum 10 fichiers.</p>';
+            return;
+        }
+        files.forEach(file => {
+            const url = URL.createObjectURL(file);
+            const container = document.createElement('div');
+            container.className = 'media-thumb';
+            if (file.type.startsWith('image/')) {
+                const img = document.createElement('img');
+                img.src = url;
+                container.appendChild(img);
+            } else if (file.type.startsWith('video/')) {
+                const video = document.createElement('video');
+                video.src = url;
+                video.controls = true;
+                container.appendChild(video);
+            } else {
+                const p = document.createElement('p');
+                p.textContent = file.name;
+                container.appendChild(p);
+            }
+            preview.appendChild(container);
+        });
+    });
+});
+</script>
+{% endblock %}

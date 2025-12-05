@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="hero">
+    <div>
+        <p class="eyebrow">Plateforme propriétaires & prestataires</p>
+        <h1>GP Immo : pilotez vos biens, contrats et interventions.</h1>
+        <p class="lede">Suivi des loyers, gestion des contrats, messagerie type chat avec vos prestataires, et un marketplace pour trouver la bonne expertise.</p>
+        <div class="actions">
+            <a class="btn" href="{% url 'signup_choice' %}">Créer un compte</a>
+            <a class="link" href="{% url 'marketplace' %}">Découvrir les prestataires</a>
+        </div>
+    </div>
+    <div class="hero-card">
+        <h3>Vue rapide</h3>
+        <ul>
+            <li>Contrats et loyers suivis</li>
+            <li>Chat et devis prestataires</li>
+            <li>Rapports d'intervention archivés</li>
+        </ul>
+    </div>
+</section>
+
+<section class="cards-grid">
+    <article class="card">
+        <h3>Gestion des biens</h3>
+        <p>Ajoutez appartements, studios, chambres, magasins ou immeubles, en location ou vente.</p>
+    </article>
+    <article class="card">
+        <h3>Contrats & paiements</h3>
+        <p>Suivez les loyers, réservations et paiements prestataires.</p>
+    </article>
+    <article class="card">
+        <h3>Prestataires vérifiés</h3>
+        <p>Choisissez par spécialisation : plomberie, menuiserie, carrelage et plus.</p>
+    </article>
+</section>
+
+<section class="market-preview">
+    <div class="section-head">
+        <div>
+            <p class="eyebrow">Marketplace</p>
+            <h2>Prestataires en vitrine</h2>
+        </div>
+        <a class="link" href="{% url 'marketplace' %}">Tout voir</a>
+    </div>
+    <div class="cards-grid">
+        {% for p in prestataires %}
+            <article class="card">
+                <h4>{{ p.display_name }}</h4>
+                <p>{{ p.specialization|default:"Prestataire multi-services" }}</p>
+            </article>
+        {% empty %}
+            <p>Aucun prestataire publié pour le moment.</p>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-head">
+    <h2>Marketplace prestataires</h2>
+    <form method="get" class="inline-form">
+        <input type="search" name="q" value="{{ search }}" placeholder="Plomberie, menuiserie...">
+        <button class="btn" type="submit">Rechercher</button>
+    </form>
+</div>
+<div class="cards-grid">
+    {% for p in prestataires %}
+        <article class="card">
+            <h4>{{ p.display_name }}</h4>
+            <p class="muted">{{ p.specialization }}</p>
+            <p>Téléphone : {{ p.phone|default:"-" }}</p>
+            <a class="link" href="{% url 'conversation' p.id %}">Contacter</a>
+        </article>
+    {% empty %}
+        <p>Aucun prestataire trouvé.</p>
+    {% endfor %}
+</div>
+{% endblock %}

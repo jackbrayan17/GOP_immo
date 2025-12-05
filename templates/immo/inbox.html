@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="section-head">
+    <h2>Messagerie</h2>
+</div>
+
+<h3>Contacts</h3>
+<div class="chips">
+    {% for contact in contacts %}
+        <a class="chip" href="{% url 'conversation' contact.id %}">{{ contact.display_name }}</a>
+    {% empty %}
+        <p>Pas encore de conversation.</p>
+    {% endfor %}
+</div>
+
+{% if suggested %}
+    <h3>Suggestions</h3>
+    <div class="chips">
+        {% for contact in suggested %}
+            <a class="chip" href="{% url 'conversation' contact.id %}">{{ contact.display_name }}</a>
+        {% endfor %}
+    </div>
+{% endif %}
+{% endblock %}
