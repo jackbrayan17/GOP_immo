@@ -1,6 +1,6 @@
 Django
 django-allauth
-crispy-forms
+django-crispy-forms
 crispy-tailwind
 django-tailwind
 djangorestframework
