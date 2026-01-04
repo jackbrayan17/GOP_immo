@@ -56,7 +56,7 @@ class _PaymentFormScreenState extends State<PaymentFormScreen> {
                   ),
                   const SizedBox(height: 12),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Date d'echeance'),
+                    decoration: const InputDecoration(labelText: "Date d'echeance"),
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(

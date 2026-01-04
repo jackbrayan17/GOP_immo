@@ -59,7 +59,7 @@ class AppTheme {
         foregroundColor: ink,
         titleTextStyle: textTheme.titleLarge,
       ),
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         color: cloud,
         elevation: 0,
         margin: EdgeInsets.zero,
