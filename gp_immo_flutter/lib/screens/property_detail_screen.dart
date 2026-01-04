@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../data/mock_data.dart';
 import '../models/app_models.dart';
+import '../state/app_state.dart';
 import '../utils/formatting.dart';
+import '../widgets/empty_state_card.dart';
+import '../widgets/error_banner.dart';
 import '../widgets/page_scaffold.dart';
 import '../widgets/status_pill.dart';
 import 'forms/assign_provider_screen.dart';
@@ -10,13 +13,18 @@ import 'forms/contract_form_screen.dart';
 import 'forms/media_upload_screen.dart';
 
 class PropertyDetailScreen extends StatelessWidget {
-  const PropertyDetailScreen({super.key, required this.property});
+  const PropertyDetailScreen({super.key, required this.propertyId});
 
-  final Property property;
+  final String propertyId;
 
   @override
   Widget build(BuildContext context) {
-    final owner = MockData.owner;
+    final state = context.watch<AppState>();
+    final property = state.properties.firstWhere(
+      (item) => item.id == propertyId,
+      orElse: () => _fallbackProperty,
+    );
+    final owner = state.owner;
 
     return PageScaffold(
       title: property.title,
@@ -28,13 +36,36 @@ class PropertyDetailScreen extends StatelessWidget {
       ],
       body: ListView(
         children: [
+          if (state.hasError)
+            ErrorBanner(
+              message: state.errorMessage ?? 'Erreur inconnue.',
+              onClose: () => context.read<AppState>().clearError(),
+            ),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(18),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(property.address, style: Theme.of(context).textTheme.titleMedium),
+                  Row(
+                    children: [
+                      Hero(
+                        tag: 'property_${property.id}',
+                        child: CircleAvatar(
+                          radius: 22,
+                          backgroundColor: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          child: Text(_initial(property.title)),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          property.address,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                    ],
+                  ),
                   const SizedBox(height: 8),
                   Text(property.description),
                   const SizedBox(height: 12),
@@ -91,29 +122,69 @@ class PropertyDetailScreen extends StatelessWidget {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: () => Navigator.of(context).push(
-              MaterialPageRoute(builder: (_) => const MediaUploadScreen()),
+              MaterialPageRoute(builder: (_) => MediaUploadScreen(propertyId: property.id)),
             ),
             icon: const Icon(Icons.perm_media_outlined),
             label: const Text('Gerer les medias'),
           ),
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: () => _addDemoMedia(context, property),
+            icon: const Icon(Icons.add_photo_alternate_outlined),
+            label: const Text('Ajouter un media demo'),
+          ),
           const SizedBox(height: 24),
           Text('Medias', style: Theme.of(context).textTheme.titleMedium),
           const SizedBox(height: 12),
-          Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            children: [
-              for (final media in property.media)
-                _MediaTile(
-                  label: media.label,
-                  kind: media.kind,
-                ),
-            ],
-          ),
+          if (property.media.isEmpty)
+            const EmptyStateCard(
+              title: 'Aucun media',
+              message: 'Ajoutez des photos ou documents pour enrichir le bien.',
+            )
+          else
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                for (final media in property.media)
+                  _MediaTile(
+                    label: media.label,
+                    kind: media.kind,
+                  ),
+              ],
+            ),
         ],
       ),
     );
   }
+}
+
+void _addDemoMedia(BuildContext context, Property property) {
+  final id = 'media_${DateTime.now().millisecondsSinceEpoch}';
+  final media = MediaItem(
+    id: id,
+    kind: MediaKind.image,
+    label: 'Visuel_$id.jpg',
+  );
+  context.read<AppState>().addMedia(property.id, media);
+}
+
+const Property _fallbackProperty = Property(
+  id: 'fallback',
+  ownerId: 'fallback',
+  title: 'Bien inconnu',
+  propertyType: '-',
+  listingStatus: '-',
+  address: '-',
+  description: '',
+  price: 0,
+  furnished: false,
+  media: [],
+);
+
+String _initial(String value) {
+  if (value.isEmpty) return '?';
+  return value.substring(0, 1).toUpperCase();
 }
 
 class _MediaTile extends StatelessWidget {

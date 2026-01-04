@@ -1,65 +1,93 @@
 import '../models/app_models.dart';
+import '../utils/auth_utils.dart';
 
 class MockData {
+  static final String _defaultPasswordHash = hashPassword('gopimmo123');
+
   static final AppUser owner = AppUser(
     id: 'u_owner',
     name: 'Aminata Diallo',
     role: UserRole.owner,
+    email: 'aminata@gopimmo.local',
     phone: '77 123 45 67',
     specialization: '',
     marketplaceVisible: false,
     rating: 0,
+    passwordHash: _defaultPasswordHash,
   );
 
   static final AppUser providerLead = AppUser(
     id: 'u_provider_1',
     name: 'Malick Sane',
     role: UserRole.provider,
+    email: 'malick@gopimmo.local',
     phone: '70 909 11 02',
     specialization: 'Plomberie',
     marketplaceVisible: true,
     rating: 4.8,
+    passwordHash: _defaultPasswordHash,
+  );
+
+  static final AppUser clientLead = AppUser(
+    id: 'u_client_1',
+    name: 'Awa Sarr',
+    role: UserRole.client,
+    email: 'awa@gopimmo.local',
+    phone: '77 553 12 45',
+    specialization: '',
+    marketplaceVisible: false,
+    rating: 0,
+    passwordHash: _defaultPasswordHash,
   );
 
   static final List<AppUser> users = [
     owner,
     providerLead,
-    const AppUser(
+    AppUser(
       id: 'u_provider_2',
       name: 'Coumba Diop',
       role: UserRole.provider,
+      email: 'coumba@gopimmo.local',
       phone: '76 441 88 09',
       specialization: 'Carrelage',
       marketplaceVisible: true,
       rating: 4.6,
+      passwordHash: _defaultPasswordHash,
     ),
-    const AppUser(
+    AppUser(
       id: 'u_provider_3',
       name: 'Ibrahima Ba',
       role: UserRole.provider,
+      email: 'ibrahima@gopimmo.local',
       phone: '77 330 01 44',
       specialization: 'Electricite',
       marketplaceVisible: true,
       rating: 4.7,
+      passwordHash: _defaultPasswordHash,
     ),
-    const AppUser(
+    AppUser(
       id: 'u_provider_4',
       name: 'Sarah Ndiaye',
       role: UserRole.provider,
+      email: 'sarah@gopimmo.local',
       phone: '78 552 12 90',
       specialization: 'Menuiserie',
       marketplaceVisible: true,
       rating: 4.5,
+      passwordHash: _defaultPasswordHash,
     ),
-    const AppUser(
+    AppUser(
       id: 'u_provider_5',
       name: 'Khadija Fall',
       role: UserRole.provider,
+      email: 'khadija@gopimmo.local',
       phone: '70 211 92 12',
       specialization: 'Peinture',
       marketplaceVisible: true,
       rating: 4.4,
+      passwordHash: _defaultPasswordHash,
     ),
+    clientLead,
   ];
 
   static final List<Property> properties = [

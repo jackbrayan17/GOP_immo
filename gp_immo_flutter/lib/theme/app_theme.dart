@@ -107,6 +107,21 @@ class AppTheme {
           borderRadius: BorderRadius.circular(14),
         ),
       ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: ocean,
+          textStyle: textTheme.labelLarge?.copyWith(fontWeight: FontWeight.w600),
+        ),
+      ),
+      toggleButtonsTheme: ToggleButtonsThemeData(
+        borderRadius: BorderRadius.circular(14),
+        selectedColor: Colors.white,
+        fillColor: ocean,
+        textStyle: textTheme.labelLarge,
+      ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
         backgroundColor: cloud,
         selectedItemColor: ocean,

@@ -39,6 +39,15 @@ class SignupChoiceScreen extends StatelessWidget {
                   ),
                 ),
               ),
+              _ChoiceCard(
+                title: 'Client',
+                description: 'Achetez ou louez un bien, contactez les equipes.',
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (_) => const SignupScreen(roleLabel: 'Client'),
+                  ),
+                ),
+              ),
             ],
           ),
         ],

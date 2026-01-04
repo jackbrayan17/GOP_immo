@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 import 'screens/dashboard_screen.dart';
 import 'screens/forms/assign_provider_screen.dart';
@@ -9,11 +10,10 @@ import 'screens/forms/property_form_screen.dart';
 import 'screens/forms/report_form_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/inbox_screen.dart';
-import 'screens/login_screen.dart';
 import 'screens/marketplace_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/properties_screen.dart';
-import 'screens/signup_choice_screen.dart';
+import 'state/app_state.dart';
 import 'widgets/app_background.dart';
 
 enum AppDrawerAction {
@@ -28,97 +28,70 @@ enum AppDrawerAction {
   assignProvider,
   media,
   profile,
-  login,
-  signup,
+  logout,
 }
 
-class AppShell extends StatefulWidget {
+class AppShell extends StatelessWidget {
   const AppShell({super.key});
 
-  @override
-  State<AppShell> createState() => _AppShellState();
-}
-
-class _AppShellState extends State<AppShell> {
-  int _selectedIndex = 0;
-
-  final List<Widget> _screens = const [
+  static const List<Widget> _screens = [
     HomeScreen(),
-    MarketplaceScreen(),
+    MarketplaceScreen(embedded: true),
     DashboardScreen(),
     InboxScreen(),
   ];
 
-  void _onNavTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
-  }
-
-  void _onDrawerAction(AppDrawerAction action) {
+  void _onDrawerAction(BuildContext context, AppDrawerAction action) {
     Navigator.pop(context);
     switch (action) {
       case AppDrawerAction.home:
-        _onNavTapped(0);
+        context.read<AppState>().setNavIndex(0);
         break;
       case AppDrawerAction.marketplace:
-        _onNavTapped(1);
+        context.read<AppState>().setNavIndex(1);
         break;
       case AppDrawerAction.dashboard:
-        _onNavTapped(2);
+        context.read<AppState>().setNavIndex(2);
         break;
       case AppDrawerAction.inbox:
-        _onNavTapped(3);
+        context.read<AppState>().setNavIndex(3);
         break;
       case AppDrawerAction.properties:
-        _push(const PropertiesScreen());
+        _push(context, const PropertiesScreen());
         break;
       case AppDrawerAction.contract:
-        _push(const ContractFormScreen());
+        _push(context, const ContractFormScreen());
         break;
       case AppDrawerAction.payment:
-        _push(const PaymentFormScreen());
+        _push(context, const PaymentFormScreen());
         break;
       case AppDrawerAction.report:
-        _push(const ReportFormScreen());
+        _push(context, const ReportFormScreen());
         break;
       case AppDrawerAction.assignProvider:
-        _push(const AssignProviderScreen());
+        _push(context, const AssignProviderScreen());
         break;
       case AppDrawerAction.media:
-        _push(const MediaUploadScreen());
+        _push(context, const MediaUploadScreen());
         break;
       case AppDrawerAction.profile:
-        _push(const ProfileScreen());
+        _push(context, const ProfileScreen());
         break;
-      case AppDrawerAction.login:
-        _push(const LoginScreen());
-        break;
-      case AppDrawerAction.signup:
-        _push(const SignupChoiceScreen());
+      case AppDrawerAction.logout:
+        context.read<AppState>().logout();
         break;
     }
   }
 
-  void _push(Widget page) {
+  void _push(BuildContext context, Widget page) {
     Navigator.of(context).push(
       MaterialPageRoute(builder: (_) => page),
     );
   }
 
-  FloatingActionButton? _buildFab() {
-    if (_selectedIndex == 2) {
-      return FloatingActionButton.extended(
-        onPressed: () => _push(const PropertyFormScreen()),
-        icon: const Icon(Icons.add_home_work_outlined),
-        label: const Text('Ajouter un bien'),
-      );
-    }
-    return null;
-  }
-
   @override
   Widget build(BuildContext context) {
+    final selectedIndex = context.watch<AppState>().navIndex;
     return LayoutBuilder(
       builder: (context, constraints) {
         final useRail = constraints.maxWidth >= 980;
@@ -126,25 +99,46 @@ class _AppShellState extends State<AppShell> {
           extendBodyBehindAppBar: true,
           backgroundColor: Colors.transparent,
           appBar: AppBar(
-            title: const Text('GP Immo'),
+            title: Row(
+              children: [
+                Image.asset(
+                  'gop-logo.png',
+                  height: 28,
+                  width: 28,
+                  fit: BoxFit.contain,
+                ),
+                const SizedBox(width: 8),
+                const Text('GOP Immo'),
+              ],
+            ),
             actions: [
               IconButton(
                 icon: const Icon(Icons.search),
-                onPressed: () => _push(const MarketplaceScreen()),
+                onPressed: () => _push(context, const MarketplaceScreen()),
               ),
               IconButton(
                 icon: const Icon(Icons.mail_outline),
-                onPressed: () => _push(const InboxScreen()),
+                onPressed: () => _push(context, const InboxScreen()),
               ),
               IconButton(
                 icon: const Icon(Icons.person_outline),
-                onPressed: () => _push(const ProfileScreen()),
+                onPressed: () => _push(context, const ProfileScreen()),
               ),
               const SizedBox(width: 8),
             ],
           ),
-          drawer: useRail ? null : AppDrawer(onSelect: _onDrawerAction),
-          floatingActionButton: _buildFab(),
+          drawer: useRail
+              ? null
+              : AppDrawer(
+                  onSelect: (action) => _onDrawerAction(context, action),
+                ),
+          floatingActionButton: selectedIndex == 2
+              ? FloatingActionButton.extended(
+                  onPressed: () => _push(context, const PropertyFormScreen()),
+                  icon: const Icon(Icons.add_home_work_outlined),
+                  label: const Text('Ajouter un bien'),
+                )
+              : null,
           body: Stack(
             children: [
               const AppBackground(),
@@ -153,10 +147,19 @@ class _AppShellState extends State<AppShell> {
                   children: [
                     if (useRail)
                       NavigationRail(
-                        selectedIndex: _selectedIndex,
-                        onDestinationSelected: _onNavTapped,
+                        selectedIndex: selectedIndex,
+                        onDestinationSelected: (index) => context.read<AppState>().setNavIndex(index),
                         extended: true,
                         labelType: NavigationRailLabelType.none,
+                        leading: Padding(
+                          padding: const EdgeInsets.only(top: 12),
+                          child: Image.asset(
+                            'gop-logo.png',
+                            height: 36,
+                            width: 36,
+                            fit: BoxFit.contain,
+                          ),
+                        ),
                         destinations: const [
                           NavigationRailDestination(
                             icon: Icon(Icons.home_outlined),
@@ -184,7 +187,7 @@ class _AppShellState extends State<AppShell> {
                       child: Padding(
                         padding: const EdgeInsets.fromLTRB(20, 8, 20, 16),
                         child: IndexedStack(
-                          index: _selectedIndex,
+                          index: selectedIndex,
                           children: _screens,
                         ),
                       ),
@@ -197,8 +200,8 @@ class _AppShellState extends State<AppShell> {
           bottomNavigationBar: useRail
               ? null
               : BottomNavigationBar(
-                  currentIndex: _selectedIndex,
-                  onTap: _onNavTapped,
+                  currentIndex: selectedIndex,
+                  onTap: (index) => context.read<AppState>().setNavIndex(index),
                   items: const [
                     BottomNavigationBarItem(
                       icon: Icon(Icons.home_outlined),
@@ -232,9 +235,10 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final user = context.watch<AppState>().currentUser;
     return Drawer(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+      child: ListView(
+        padding: EdgeInsets.zero,
         children: [
           DrawerHeader(
             decoration: BoxDecoration(
@@ -247,9 +251,31 @@ class AppDrawer extends StatelessWidget {
             ),
             child: Align(
               alignment: Alignment.bottomLeft,
-              child: Text(
-                'GP Immo',
-                style: textTheme.titleLarge?.copyWith(color: Colors.white),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.end,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Image.asset(
+                        'gop-logo.png',
+                        height: 28,
+                        width: 28,
+                        fit: BoxFit.contain,
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'GOP Immo',
+                        style: textTheme.titleLarge?.copyWith(color: Colors.white),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    user.name,
+                    style: textTheme.bodySmall?.copyWith(color: Colors.white70),
+                  ),
+                ],
               ),
             ),
           ),
@@ -311,14 +337,9 @@ class AppDrawer extends StatelessWidget {
             onTap: () => onSelect(AppDrawerAction.profile),
           ),
           _DrawerItem(
-            icon: Icons.login_outlined,
-            label: 'Connexion',
-            onTap: () => onSelect(AppDrawerAction.login),
-          ),
-          _DrawerItem(
-            icon: Icons.person_add_alt_outlined,
-            label: 'Inscription',
-            onTap: () => onSelect(AppDrawerAction.signup),
+            icon: Icons.logout,
+            label: 'Deconnexion',
+            onTap: () => onSelect(AppDrawerAction.logout),
           ),
         ],
       ),

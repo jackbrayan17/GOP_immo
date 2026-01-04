@@ -1,27 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../data/mock_data.dart';
 import '../models/app_models.dart';
+import '../state/app_state.dart';
 import '../utils/formatting.dart';
 import '../widgets/animated_reveal.dart';
+import '../widgets/empty_state_card.dart';
+import '../widgets/error_banner.dart';
+import '../widgets/property_market_card.dart';
+import '../widgets/provider_picker.dart';
 import '../widgets/section_header.dart';
 import 'marketplace_screen.dart';
 import 'signup_choice_screen.dart';
+import 'conversation_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final providers = MockData.providers().take(3).toList();
-    final properties = MockData.properties;
-    final paymentsDue = MockData.payments.where((payment) => payment.status != PaymentStatus.paid).length;
-    final messagesCount = MockData.messages.length;
+    final state = context.watch<AppState>();
+    final providers = state.providers.take(3).toList();
+    final properties = state.properties;
+    final propertyPreviews = properties.take(3).toList();
+    final paymentsDue = state.payments.where((payment) => payment.status != PaymentStatus.paid).length;
+    final messagesCount = state.messages.length;
+    final client =
+        state.currentUser.role == UserRole.client ? state.currentUser : state.client;
 
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (state.hasError)
+            ErrorBanner(
+              message: state.errorMessage ?? 'Erreur inconnue.',
+              onClose: () => context.read<AppState>().clearError(),
+              onRetry: () => context.read<AppState>().reload(),
+            ),
           _HeroSection(
             onPrimary: () => Navigator.of(context).push(
               MaterialPageRoute(builder: (_) => const SignupChoiceScreen()),
@@ -53,6 +69,57 @@ class HomeScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 32),
+          _LocationCard(
+            locationLabel: state.locationLabel,
+            updatedAt: state.locationUpdatedAt,
+            loading: state.locationLoading,
+            onRefresh: () => context.read<AppState>().refreshLocation(),
+          ),
+          const SizedBox(height: 32),
+          SectionHeader(
+            title: 'Biens disponibles',
+            eyebrow: 'Espace client',
+            action: TextButton(
+              onPressed: () => Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const MarketplaceScreen(
+                    initialSection: MarketplaceSection.properties,
+                  ),
+                ),
+              ),
+              child: const Text('Voir tous'),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Wrap(
+            spacing: 16,
+            runSpacing: 16,
+            children: [
+              for (var i = 0; i < propertyPreviews.length; i++)
+                AnimatedReveal(
+                  delay: Duration(milliseconds: 120 * i),
+                  child: PropertyMarketCard(
+                    property: propertyPreviews[i],
+                    owner: state.userById(propertyPreviews[i].ownerId),
+                    onPrimaryAction: () =>
+                        _handlePropertyAction(context, propertyPreviews[i]),
+                    onContactOwner: () =>
+                        _contactOwner(context, state, propertyPreviews[i], client),
+                    onContactProvider: () =>
+                        _contactProvider(context, state, client),
+                  ),
+                ),
+            ],
+          ),
+          if (propertyPreviews.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: EmptyStateCard(
+                title: 'Aucun bien disponible',
+                message: 'Revenez plus tard pour les nouvelles offres.',
+              ),
+            ),
+          const SizedBox(height: 32),
           const SectionHeader(
             title: 'Votre cockpit immobilier',
             eyebrow: 'Fonctionnalites',
@@ -81,11 +148,15 @@ class HomeScreen extends StatelessWidget {
           ),
           const SizedBox(height: 32),
           SectionHeader(
-            title: 'Prestataires en vitrine',
-            eyebrow: 'Marketplace',
+            title: 'Prestataires recommandes',
+            eyebrow: 'Espace client',
             action: TextButton(
               onPressed: () => Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => const MarketplaceScreen()),
+                MaterialPageRoute(
+                  builder: (_) => const MarketplaceScreen(
+                    initialSection: MarketplaceSection.providers,
+                  ),
+                ),
               ),
               child: const Text('Tout voir'),
             ),
@@ -98,10 +169,28 @@ class HomeScreen extends StatelessWidget {
               for (var i = 0; i < providers.length; i++)
                 AnimatedReveal(
                   delay: Duration(milliseconds: 120 * i),
-                  child: _ProviderPreviewCard(provider: providers[i]),
+                  child: _ProviderPreviewCard(
+                    provider: providers[i],
+                    onContact: () => Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (_) => ConversationScreen(
+                          contact: providers[i],
+                          currentUserOverride: client,
+                        ),
+                      ),
+                    ),
+                  ),
                 ),
             ],
           ),
+          if (providers.isEmpty)
+            const Padding(
+              padding: EdgeInsets.only(top: 12),
+              child: EmptyStateCard(
+                title: 'Aucun prestataire',
+                message: 'Les prestataires seront visibles apres activation du profil.',
+              ),
+            ),
           const SizedBox(height: 32),
           Card(
             child: Padding(
@@ -122,7 +211,9 @@ class HomeScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 12),
                   Text(
-                    'Dernier loyer: ${formatCurrency(MockData.payments.first.amount)}',
+                    properties.isEmpty || state.payments.isEmpty
+                        ? 'Dernier loyer: -'
+                        : 'Dernier loyer: ${formatCurrency(state.payments.first.amount)}',
                     style: Theme.of(context).textTheme.bodySmall,
                   ),
                 ],
@@ -192,7 +283,7 @@ class _HeroCopy extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Plateforme proprietaires & prestataires',
+          'Plateforme proprietaires, prestataires & clients',
           style: textTheme.labelMedium?.copyWith(letterSpacing: 0.6),
         ),
         const SizedBox(height: 12),
@@ -310,9 +401,10 @@ class _FeatureCard extends StatelessWidget {
 }
 
 class _ProviderPreviewCard extends StatelessWidget {
-  const _ProviderPreviewCard({required this.provider});
+  const _ProviderPreviewCard({required this.provider, required this.onContact});
 
   final AppUser provider;
+  final VoidCallback onContact;
 
   @override
   Widget build(BuildContext context) {
@@ -331,7 +423,7 @@ class _ProviderPreviewCard extends StatelessWidget {
               Text('Note: ${provider.rating.toStringAsFixed(1)} / 5'),
               const SizedBox(height: 12),
               TextButton(
-                onPressed: () {},
+                onPressed: onContact,
                 child: const Text('Contacter'),
               ),
             ],
@@ -381,4 +473,98 @@ class _StatCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _LocationCard extends StatelessWidget {
+  const _LocationCard({
+    required this.locationLabel,
+    required this.updatedAt,
+    required this.loading,
+    required this.onRefresh,
+  });
+
+  final String? locationLabel;
+  final DateTime? updatedAt;
+  final bool loading;
+  final VoidCallback onRefresh;
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundColor: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+              child: Icon(
+                Icons.place_outlined,
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Localisation', style: Theme.of(context).textTheme.titleMedium),
+                  const SizedBox(height: 4),
+                  Text(
+                    locationLabel ?? 'Cliquez pour activer la geolocalisation.',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (updatedAt != null)
+                    Text(
+                      'Mis a jour: ${formatDateTime(updatedAt!)}',
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            ElevatedButton(
+              onPressed: loading ? null : onRefresh,
+              child: Text(loading ? '...' : 'Actualiser'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+void _handlePropertyAction(BuildContext context, Property property) {
+  final isForSale = property.listingStatus.toLowerCase().contains('vente');
+  final prefix = isForSale ? 'd\'achat' : 'de location';
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text('Demande $prefix envoyee pour ${property.title}.'),
+    ),
+  );
+}
+
+void _contactOwner(BuildContext context, AppState state, Property property, AppUser client) {
+  final owner = state.userById(property.ownerId);
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => ConversationScreen(
+        contact: owner,
+        currentUserOverride: client,
+      ),
+    ),
+  );
+}
+
+Future<void> _contactProvider(BuildContext context, AppState state, AppUser client) async {
+  final provider = await showProviderPicker(context, state.providers);
+  if (!context.mounted || provider == null) return;
+  Navigator.of(context).push(
+    MaterialPageRoute(
+      builder: (_) => ConversationScreen(
+        contact: provider,
+        currentUserOverride: client,
+      ),
+    ),
+  );
 }

@@ -1,11 +1,11 @@
 {
-    "name": "gp_immo_frontend",
-    "short_name": "gp_immo_frontend",
+    "name": "GOP Immo",
+    "short_name": "GOP Immo",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#E37A5C",
+    "description": "GOP Immo - Gestion immobiliere et prestataires.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -1,44 +1,74 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
-import '../data/mock_data.dart';
 import '../models/app_models.dart';
+import '../state/app_state.dart';
+import '../widgets/error_banner.dart';
 import '../widgets/page_scaffold.dart';
+import 'login_screen.dart';
 
-class ProfileScreen extends StatefulWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
-}
-
-class _ProfileScreenState extends State<ProfileScreen> {
-  bool _showOwner = true;
-  bool _marketplaceVisible = true;
-
-  @override
   Widget build(BuildContext context) {
-    final user = _showOwner ? MockData.owner : MockData.providerLead;
+    final state = context.watch<AppState>();
+    final user = state.currentUser;
+    final isAuthenticated = state.isAuthenticated;
 
     return PageScaffold(
       title: 'Mon profil',
       body: ListView(
         children: [
-          ToggleButtons(
-            isSelected: [_showOwner, !_showOwner],
-            onPressed: (index) => setState(() => _showOwner = index == 0),
-            borderRadius: BorderRadius.circular(14),
-            children: const [
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Text('Proprietaire'),
+          if (state.hasError)
+            ErrorBanner(
+              message: state.errorMessage ?? 'Erreur inconnue.',
+              onClose: () => context.read<AppState>().clearError(),
+            ),
+          if (isAuthenticated)
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.verified_user_outlined),
+                title: Text('Connecte en tant que ${user.name}'),
+                subtitle: Text(user.roleLabel),
+                trailing: TextButton(
+                  onPressed: () {
+                    context.read<AppState>().logout();
+                    Navigator.of(context).popUntil((route) => route.isFirst);
+                  },
+                  child: const Text('Se deconnecter'),
+                ),
               ),
-              Padding(
-                padding: EdgeInsets.symmetric(horizontal: 12),
-                child: Text('Prestataire'),
+            )
+          else
+            Card(
+              child: ListTile(
+                leading: const Icon(Icons.login_outlined),
+                title: const Text('Connexion'),
+                subtitle: const Text('Accedez a votre espace personnel.'),
+                onTap: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                ),
               ),
-            ],
-          ),
+            ),
           const SizedBox(height: 16),
+          if (!isAuthenticated)
+            ToggleButtons(
+              isSelected: [state.showOwner, !state.showOwner],
+              onPressed: (index) => context.read<AppState>().setShowOwner(index == 0),
+              borderRadius: BorderRadius.circular(14),
+              children: const [
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Text('Proprietaire'),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 12),
+                  child: Text('Prestataire'),
+                ),
+              ],
+            ),
+          if (!isAuthenticated) const SizedBox(height: 16),
           Card(
             child: Padding(
               padding: const EdgeInsets.all(18),
@@ -49,6 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   const SizedBox(height: 6),
                   Text(user.roleLabel),
                   const SizedBox(height: 16),
+                  if (user.email.isNotEmpty) _ProfileRow(label: 'Email', value: user.email),
                   _ProfileRow(label: 'Telephone', value: user.phone),
                   if (user.role == UserRole.provider)
                     _ProfileRow(label: 'Specialisation', value: user.specialization),
@@ -62,8 +93,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           if (user.role == UserRole.provider)
             Card(
               child: SwitchListTile(
-                value: _marketplaceVisible,
-                onChanged: (value) => setState(() => _marketplaceVisible = value),
+                value: user.marketplaceVisible,
+                onChanged: (value) =>
+                    context.read<AppState>().updateMarketplaceVisibility(user.id, value),
                 title: const Text('Visible sur la marketplace'),
                 subtitle: const Text('Activez pour recevoir plus de missions.'),
               ),

@@ -22,7 +22,18 @@ class PageScaffold extends StatelessWidget {
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.transparent,
       appBar: AppBar(
-        title: Text(title),
+        title: Row(
+          children: [
+            Image.asset(
+              'gop-logo.png',
+              height: 24,
+              width: 24,
+              fit: BoxFit.contain,
+            ),
+            const SizedBox(width: 8),
+            Flexible(child: Text(title)),
+          ],
+        ),
         actions: actions,
       ),
       floatingActionButton: floatingActionButton,
