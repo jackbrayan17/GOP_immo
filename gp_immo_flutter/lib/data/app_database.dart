@@ -30,7 +30,7 @@ class AppDatabase {
     final path = await _databasePath();
     return openDatabase(
       path,
-      version: 2,
+      version: 3,
       onCreate: (db, version) async {
         await db.execute(_createUsers);
         await db.execute(_createProperties);
@@ -53,7 +53,7 @@ class AppDatabase {
           );
           await db.execute(
             'UPDATE users SET phone_normalized = REPLACE(REPLACE(phone, \' \', \'\'), \'-\', \'\') '
-                'WHERE phone_normalized IS NULL',
+            'WHERE phone_normalized IS NULL',
           );
           final defaultHash = hashPassword('gopimmo123');
           await db.update(
@@ -61,6 +61,9 @@ class AppDatabase {
             {'password_hash': defaultHash},
             where: 'password_hash IS NULL OR password_hash = \'\'',
           );
+        }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE media ADD COLUMN path TEXT');
         }
       },
     );
@@ -109,7 +112,8 @@ CREATE TABLE media(
   id TEXT PRIMARY KEY,
   property_id TEXT NOT NULL,
   kind TEXT NOT NULL,
-  label TEXT NOT NULL
+  label TEXT NOT NULL,
+  path TEXT
 )
 ''';
 

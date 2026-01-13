@@ -348,6 +348,14 @@ class AppState extends ChangeNotifier {
     try {
       _logger.info('Adding property ${property.id}');
       await _repository.insertProperty(property);
+      
+      // Save media items associated with the property
+      if (property.media.isNotEmpty) {
+        for (final media in property.media) {
+           await _repository.insertMedia(property.id, media);
+        }
+      }
+
       properties = [...properties, property];
       errorMessage = null;
       await _notificationService.showNotification(

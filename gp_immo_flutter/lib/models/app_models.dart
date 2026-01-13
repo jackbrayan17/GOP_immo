@@ -104,17 +104,20 @@ class MediaItem {
     required this.id,
     required this.kind,
     required this.label,
+    this.path,
   });
 
   final String id;
   final MediaKind kind;
   final String label;
+  final String? path;
 
   factory MediaItem.fromMap(Map<String, Object?> map) {
     return MediaItem(
       id: map['id'] as String,
       kind: _mediaKindFromDb(map['kind'] as String),
       label: map['label'] as String,
+      path: map['path'] as String?,
     );
   }
 
@@ -124,6 +127,7 @@ class MediaItem {
       'property_id': propertyId,
       'kind': kind.name,
       'label': label,
+      'path': path,
     };
   }
 }

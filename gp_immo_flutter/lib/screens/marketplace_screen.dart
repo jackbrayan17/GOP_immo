@@ -10,6 +10,7 @@ import '../widgets/page_scaffold.dart';
 import '../widgets/property_market_card.dart';
 import '../widgets/provider_picker.dart';
 import '../widgets/section_header.dart';
+import '../widgets/property_details_modal.dart';
 import 'conversation_screen.dart';
 
 enum MarketplaceSection { properties, providers }
@@ -152,12 +153,15 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
                 for (var i = 0; i < properties.length; i++)
                   AnimatedReveal(
                     delay: Duration(milliseconds: 80 * i),
-                    child: PropertyMarketCard(
-                      property: properties[i],
-                      owner: state.userById(properties[i].ownerId),
-                      onPrimaryAction: () => _handlePropertyAction(context, properties[i]),
-                      onContactOwner: () => _contactOwner(context, state, properties[i]),
-                      onContactProvider: () => _contactProvider(context, state),
+                    child: GestureDetector(
+                      onTap: () => _showPropertyDetails(context, properties[i], state),
+                      child: PropertyMarketCard(
+                        property: properties[i],
+                        owner: state.userById(properties[i].ownerId),
+                        onPrimaryAction: () => _handlePropertyAction(context, properties[i]),
+                        onContactOwner: () => _contactOwner(context, state, properties[i]),
+                        onContactProvider: () => _contactProvider(context, state),
+                      ),
                     ),
                   )
               else
@@ -239,6 +243,27 @@ class _MarketplaceScreenState extends State<MarketplaceScreen> {
         builder: (_) => ConversationScreen(
           contact: provider,
           currentUserOverride: client,
+        ),
+      ),
+    );
+  }
+
+  void _showPropertyDetails(BuildContext context, Property property, AppState state) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.85,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, controller) => PropertyDetailsModal(
+          property: property,
+          owner: state.userById(property.ownerId),
+          onContactOwner: () {
+            Navigator.pop(context);
+            _contactOwner(context, state, property);
+          },
         ),
       ),
     );

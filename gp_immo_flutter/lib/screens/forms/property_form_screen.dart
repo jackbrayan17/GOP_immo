@@ -1,7 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:image_picker/image_picker.dart';
 
 import '../../models/app_models.dart';
+// ... previous imports ...
 import '../../state/app_state.dart';
 import '../../widgets/error_banner.dart';
 import '../../widgets/page_scaffold.dart';
@@ -14,6 +17,7 @@ class PropertyFormScreen extends StatefulWidget {
 }
 
 class _PropertyFormScreenState extends State<PropertyFormScreen> {
+  final _picker = ImagePicker();
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _addressController = TextEditingController();
@@ -24,6 +28,9 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
   String _propertyType = 'Appartement en location';
   String _listingStatus = 'Location';
   bool _saving = false;
+  
+  // New state for media
+  final List<MediaItem> _media = [];
 
   @override
   void dispose() {
@@ -54,7 +61,7 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
       description: _descriptionController.text.trim(),
       price: price,
       furnished: _furnished,
-      media: const [],
+      media: _media, // Save with media
     );
     await state.addProperty(property);
     setState(() => _saving = false);
@@ -65,6 +72,79 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
       Navigator.of(context).pop();
     }
   }
+
+  Future<void> _pickMedia(MediaKind kind) async {
+    if (_media.length >= 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Limite de 10 medias atteinte.')),
+      );
+      return;
+    }
+
+    try {
+      final XFile? file = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+      
+      if (file == null) return;
+
+      final id = 'media_${DateTime.now().millisecondsSinceEpoch}';
+      setState(() {
+        _media.add(MediaItem(
+          id: id,
+          kind: MediaKind.image, // For now focusing on images as video picker is separate method usually
+          label: file.name,
+          path: file.path,
+        ));
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    }
+  }
+
+  Future<void> _pickVideo() async {
+    if (_media.length >= 10) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Limite de 10 medias atteinte.')),
+      );
+      return;
+    }
+
+    try {
+      final XFile? file = await _picker.pickVideo(
+        source: ImageSource.gallery,
+        maxDuration: const Duration(minutes: 2),
+      );
+      
+      if (file == null) return;
+
+      final id = 'media_${DateTime.now().millisecondsSinceEpoch}';
+      setState(() {
+        _media.add(MediaItem(
+          id: id,
+          kind: MediaKind.video,
+          label: file.name,
+          path: file.path,
+        ));
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur: $e')),
+      );
+    }
+  }
+
+  void _removeMedia(String id) {
+    setState(() {
+      _media.removeWhere((item) => item.id == id);
+    });
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -84,6 +164,7 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
               child: Form(
                 key: _formKey,
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     TextFormField(
                       controller: _titleController,
@@ -146,7 +227,50 @@ class _PropertyFormScreenState extends State<PropertyFormScreen> {
                       maxLines: 4,
                       decoration: const InputDecoration(labelText: 'Description'),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
+                    Text('Photos et Vidéos', style: Theme.of(context).textTheme.titleSmall),
+                    const SizedBox(height: 8),
+                    if (_media.isEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Text('Aucun média ajouté.', style: Theme.of(context).textTheme.bodySmall),
+                      ),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final item in _media)
+                          Chip(
+                            avatar: Icon(
+                              item.kind == MediaKind.video ? Icons.videocam : Icons.image,
+                              size: 16,
+                            ),
+                            label: Text(item.label),
+                            onDeleted: () => _removeMedia(item.id),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickMedia(MediaKind.image),
+                            icon: const Icon(Icons.add_a_photo),
+                            label: const Text('Ajouter Photo'),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _pickVideo(),
+                            icon: const Icon(Icons.video_call),
+                            label: const Text('Ajouter Vidéo'),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
