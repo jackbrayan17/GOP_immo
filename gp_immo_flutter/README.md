@@ -1,91 +1,91 @@
-# GOP Immo (Global Property Management)
+# GOP Immo (Gestion de Propriété Globale)
 
-GOP Immo is a premium Flutter application designed for real estate management in Africa. It centralizes property listings, tenant-owner communication, and financial tracking into a single, offline-reliable platform.
+GOP Immo est une application Flutter premium conçue pour la gestion immobilière en Afrique. Elle centralise les annonces immobilières, la communication entre locataires et propriétaires, et le suivi financier sur une plateforme unique et fiable, même hors ligne.
 
-## 🚀 Getting Started
+## 🚀 Mise en Route
 
-### Prerequisites
+### Prérequis
 
-To run this project, ensure you have the following installed:
-- **Flutter SDK:** ^3.10.0 (Supports SDK >=2.19.0 <4.0.0)
-- **Dart SDK:** Included with Flutter
-- **Java Development Kit (JDK):** Version 17 or higher (Required for Android builds)
-- **Android Studio / Xcode:** For mobile development
-- **VS Code / IntelliJ:** Recommended IDEs with Flutter/Dart extensions
+Pour exécuter ce projet, assurez-vous d'avoir installé les éléments suivants :
+- **Flutter SDK :** ^3.10.0 (Supporte SDK >=2.19.0 <4.0.0)
+- **Dart SDK :** Inclus avec Flutter
+- **Java Development Kit (JDK) :** Version 17 ou supérieure (Requis pour les builds Android)
+- **Android Studio / Xcode :** Pour le développement mobile
+- **VS Code / IntelliJ :** IDE recommandés avec les extensions Flutter/Dart
 
 ### Installation
 
-1.  **Clone the repository:**
+1.  **Cloner le dépôt :**
     ```bash
-    git clone https://github.com/your-repo/gp_immo_flutter.git
+    git clone https://github.com/votre-repo/gp_immo_flutter.git
     cd gp_immo_flutter
     ```
 
-2.  **Install dependencies:**
+2.  **Installer les dépendances :**
     ```bash
     flutter pub get
     ```
 
-## 🛠️ Build & Run Instructions
+## 🛠️ Instructions de Build et d'Exécution
 
-### Running in Development
+### Exécution en Développement
 
-To run the application on a connected device or emulator:
+Pour lancer l'application sur un appareil connecté ou un émulateur :
 
 ```bash
 flutter run
 ```
 
-If you have multiple devices, specify one:
+Si vous avez plusieurs appareils, spécifiez-en un :
 ```bash
-flutter run -d <device_id>
+flutter run -d <id_appareil>
 ```
 
-For web development:
+Pour le développement web :
 ```bash
 flutter run -d chrome
 ```
 
-### Release Builds
+### Builds de Production (Release)
 
 #### Android (APK)
-To generate a release APK:
+Pour générer un APK de production :
 ```bash
 flutter build apk --release
 ```
-The output file will be located at: `build/app/outputs/flutter-apk/app-release.apk`
+Le fichier de sortie se trouvera à : `build/app/outputs/flutter-apk/app-release.apk`
 
 #### Android (App Bundle)
-To generate an Android App Bundle (for Play Store):
+Pour générer un Android App Bundle (pour le Play Store) :
 ```bash
 flutter build appbundle --release
 ```
 
 #### Web
-To build for web deployment:
+Pour construire la version web :
 ```bash
 flutter build web
 ```
 
-## 🏗️ Architecture & Tech Stack
+## 🏗️ Architecture et Stack Technique
 
-- **Framework:** Flutter (Cross-platform)
-- **State Management:** Provider
-- **Local Database:** SQLite (via `sqflite`)
-- **UI Architecture:** Clean, modular structure with Repository Pattern
-- **Notifications:** `flutter_local_notifications`
+- **Framework :** Flutter (Multiplateforme)
+- **Gestion d'État :** Provider
+- **Base de Données Locale :** SQLite (via `sqflite`)
+- **Architecture UI :** Structure modulaire propre avec le pattern Repository
+- **Notifications :** `flutter_local_notifications`
 
-## 📝 Key Features
+## 📝 Fonctionnalités Clés
 
-- **Dashboard:** Real-time property and financial metrics.
-- **Marketplace:** Property search with advanced filters.
-- **Inbox:** Real-time user-to-user chat.
-- **Offline Mode:** Data persistence via SQLite.
+- **Tableau de Bord :** Indicateurs immobiliers et financiers en temps réel.
+- **Marché (Marketplace) :** Recherche de propriétés avec filtres avancés.
+- **Messagerie :** Chat en temps réel entre utilisateurs.
+- **Mode Hors Ligne :** Persistance des données via SQLite.
 
-## 🛠️ Troubleshooting
+## 🛠️ Dépannage
 
-- **Android Build Failure:** If you encounter errors related to `bigLargeIcon` or Java versions, ensure your JDK is set to version 17+. The project is configured with core library desugaring to support modern Java features.
-- **Dependency Issues:** Run `flutter clean` follow by `flutter pub get` if you notice stale package references.
+- **Échec du Build Android :** Si vous rencontrez des erreurs liées à `bigLargeIcon` ou aux versions de Java, assurez-vous que votre JDK est en version 17+. Le projet est configuré avec le "core library desugaring" pour supporter les fonctionnalités Java modernes.
+- **Problèmes de Dépendances :** Exécutez `flutter clean` suivi de `flutter pub get` si vous remarquez des références de paquets obsolètes.
 
 ---
-Developed by [Your Name/Team] - GOP Immo Project.
+Développé par [Votre Nom/Équipe] - Projet GOP Immo.
